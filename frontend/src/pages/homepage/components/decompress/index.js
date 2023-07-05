@@ -15,7 +15,7 @@ const Decompress = ({ uploadFile }) => {
 
     try {
       const resultCompress = await axios.post(
-        `http://10.4.16.164:5000/api/decompress?name=${uploadFile.name}`,
+        `http://localhost:5000/api/decompress?name=${uploadFile.name}`,
         formData,
         {
           headers: {
@@ -34,7 +34,7 @@ const Decompress = ({ uploadFile }) => {
 
   const handleDownloadDecompressFile = async () => {
     try {
-      const response = await axios.get(`http://10.4.16.164:5000/api/download?name=${results?.name}&operation=decompress`, {
+      const response = await axios.get(`http://localhost:5000/api/download?name=${results?.name}&operation=decompress`, {
         responseType: 'blob',
       });
   
@@ -70,7 +70,7 @@ const Decompress = ({ uploadFile }) => {
                 </div>
               </div>
             ) : (
-              <img src={`http://10.4.16.164:5000/image/decompress/${results?.name}`}/>
+              <img src={`http://localhost:5000/image/decompress/${results?.name}`}/>
             )}
           </div>
           <div className="compress__custom">

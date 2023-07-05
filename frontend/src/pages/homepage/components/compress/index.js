@@ -35,12 +35,12 @@ const Compress = ({ uploadFile }) => {
     fileName = fileName.slice(0, -4) + Math.random() + fileName.slice(-4);
 
     setImageName(fileName);
-    setLeftImage(`http://10.4.16.164:5000/image/origin/${fileName}`);
-    setRightImage(`http://10.4.16.164:5000/image/decompress/${fileName}`);
+    setLeftImage(`http://localhost:5000/image/origin/${fileName}`);
+    setRightImage(`http://localhost:5000/image/decompress/${fileName}`);
 
     try {
       const resultCompress = await axios.post(
-        `http://10.4.16.164:5000/api/compress?name=${fileName}&codebookSize=${codebookSize}&vectorSize=${vectorSize}`,
+        `http://localhost:5000/api/compress?name=${fileName}&codebookSize=${codebookSize}&vectorSize=${vectorSize}`,
         formData,
         {
           headers: {
@@ -60,7 +60,7 @@ const Compress = ({ uploadFile }) => {
 
   const handleDownloadCompressFile = async () => {
     try {
-      const response = await axios.get(`http://10.4.16.164:5000/api/download?name=${imageName}&operation=compress`, {
+      const response = await axios.get(`http://localhost:5000/api/download?name=${imageName}&operation=compress`, {
         responseType: 'blob',
       });
   
