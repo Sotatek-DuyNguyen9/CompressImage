@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 import os
-import matplotlib.pyplot as plt, mpld3
+import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from flask import abort
 
