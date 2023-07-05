@@ -48,7 +48,6 @@ const Compress = ({ uploadFile }) => {
           },
         }
       );
-      console.log(resultCompress?.data);
       setResults(resultCompress?.data);
     } catch (error) {
       console.error(error);
