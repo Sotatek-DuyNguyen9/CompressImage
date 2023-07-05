@@ -1,0 +1,25 @@
+.compress {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+
+    &__comparison {
+        display: flex;
+        justify-content: center;
+        // margin: 16px 0;
+        height: 400px;
+        flex: 3;
+        background-image: url(../../../../assets/image/common/background.jpg);
+        border: 2px solid #ddd;
+        border-radius: 4px;
+
+        > div {
+            width: 49.2% !important;
+        }
+    }
+
+    &__custom {
+        flex: 1;
+    }
+}
