@@ -37,17 +37,21 @@ def handle_compress(image_name, codebook_size, vector_size):
     for channel in range(channel_size):  # 3 kênh màu: R, G, B
         # Lấy kênh màu hiện tại
         if channel_size > 1:
-          channel_data = input_image[:, :, channel]
-        else: channel_data = input_image
+            channel_data = input_image[:, :, channel]
+        else:
+            channel_data = input_image
 
         # Chuyển đổi kích thước ma trận ảnh
         input_height, input_width = channel_data.shape
-        output_height = input_height // vector_size
-        output_width = input_width // vector_size
+        output_height = (input_height // vector_size) * vector_size
+        output_width = (input_width // vector_size) * vector_size
+
+        # Đối xứng gương kích thước ảnh đến kích thước chia hết cho vector_size
+        channel_data = channel_data[:output_height, :output_width]
 
         # Chuyển đổi ma trận ảnh thành các vector ô vuông vector_size x vector_size pixel
-        training_img = channel_data[:output_height * vector_size, :output_width * vector_size].reshape(
-            (output_height, vector_size, output_width, vector_size)
+        training_img = channel_data.reshape(
+            (output_height // vector_size, vector_size, output_width // vector_size, vector_size)
         ).transpose(0, 2, 1, 3).reshape(-1, vector_size * vector_size)
 
         # Tạo model VQ sử dụng thuật toán KMeans
@@ -62,31 +66,30 @@ def handle_compress(image_name, codebook_size, vector_size):
 
         ########### NÉN KÊNH MÀU ###########
         # Chuyển đổi ma trận ảnh thành các vector ô vuông vector_size x vector_size pixel
-        compressed_channel = channel_data[:output_height * vector_size, :output_width * vector_size].reshape(
-            (output_height, vector_size, output_width, vector_size)
+        compressed_channel = channel_data.reshape(
+            (output_height // vector_size, vector_size, output_width // vector_size, vector_size)
         ).transpose(0, 2, 1, 3).reshape(-1, vector_size * vector_size)
 
         # Lấy ra index của các vector
         labels = vq_model.predict(compressed_channel)
 
         ########### GIẢI NÉN KÊNH MÀU ###########
-        # Thực hiện giải nén kênh màu bằng cách thay thế mã hóa nén bằng các giá trị của centroids/codebook
+        # Thực hiện giải nén kênh màu bằng cách thay thế mã hóa nén bằng cácgiá trị của centroids/codebook
         decompressed_channel = np.zeros_like(compressed_channel)
         for i in range(len(codebook)):
-            decompressed_channel[labels==i] = codebook[i]
+            decompressed_channel[labels == i] = codebook[i]
 
+        # Đưa kênh màu đã giải nén về kích thước ban đầu
+        decompressed_channel = decompressed_channel.reshape(
+            (output_height // vector_size, output_width // vector_size, vector_size, vector_size)
+        ).transpose(0, 2, 1, 3).reshape(output_height, output_width)
+
+        # Ghép lại kênh màu đã giải nén vào ảnh nén hoàn chỉnh
         if channel_size > 1:
-          # Ghép lại kênh màu đã giải nén vào ảnh nén hoàn chỉnh
-          decompressed_img[:output_height * vector_size, :output_width * vector_size, channel] = decompressed_channel.reshape(
-              (output_height, output_width, vector_size, vector_size)
-          ).transpose(0, 2, 1, 3).reshape(
-              (output_height * vector_size, output_width * vector_size)
-          )
+            decompressed_img[:output_height, :output_width, channel] = decompressed_channel
         else:
-          decompressed_img = decompressed_channel.reshape(
-              (output_height, output_width, vector_size, vector_size)
-          ).transpose(0, 2, 1, 3).reshape(input_image.shape)
-        
+            decompressed_img = decompressed_channel
+
         codebook_list.append(codebook)
         label_list.append(labels)
     
@@ -117,7 +120,7 @@ def handle_compress(image_name, codebook_size, vector_size):
     decompressed_img = decompressed_img.astype(np.uint8)
 
     # Tính độ lỗi bình phương trung bình (Mean Squared Error)
-    mse = np.mean((input_image - decompressed_img) ** 2)
+    mse = np.mean((input_image[:output_height, :output_width] - decompressed_img[:output_height, :output_width]) ** 2)
 
     # Tính PSNR
     max_pixel_value = 255  # Giá trị pixel tối đa
@@ -143,32 +146,42 @@ def handle_decompress(file_name):
     codebook_list = data['codebook_list']
     label_list = data['label_list']
 
-    decompressed_img = np.zeros(input_shape, dtype=np.uint8)    
+    decompressed_img = np.zeros(input_shape, dtype=np.uint8)
     for channel in range(channel_size):  # 3 kênh màu: R, G, B
-        # Chuyển đổi kích thước ma trận ảnh
-        if channel_size > 1:
-            input_height, input_width, _ = input_shape
-        else:
-            input_height, input_width = input_shape
-        output_height = input_height // vector_size
-        output_width = input_width // vector_size
+        # Lấy kênh màu hiện tại
+        channel_data = np.zeros(input_shape[:2], dtype=np.uint8)
 
-        # Tạo một ma trận zeros có kích thước giống với ảnh gốc
-        decompressed_channel = np.zeros(compressed_shape, dtype=np.uint8)
+        # Chuyển đổi kích thước ma trận ảnh
+        input_height, input_width = channel_data.shape
+        output_height = (input_height // vector_size) * vector_size
+        output_width = (input_width // vector_size) * vector_size
+        
+        # Đối xứng gương kích thước ảnh đến kích thước chia hết cho vector_size
+        channel_data = channel_data[:output_height, :output_width]
+
+        ########### NÉN KÊNH MÀU ###########
+        # Chuyển đổi ma trận ảnh thành các vector ô vuông vector_size x vector_size pixel
+        compressed_channel = channel_data.reshape(
+            (output_height // vector_size, vector_size, output_width // vector_size, vector_size)
+        ).transpose(0, 2, 1, 3).reshape(-1, vector_size * vector_size)
+
+        ########### GIẢI NÉN KÊNH MÀU ###########
+        # Thực hiện giải nén kênh màu bằng cách thay thế mã hóa nén bằng cácgiá trị của centroids/codebook
+
+        decompressed_channel = np.zeros_like(compressed_channel)
         for i in range(len(codebook_list[channel])):
             decompressed_channel[label_list[channel]==i] = codebook_list[channel][i]
 
+        # Đưa kênh màu đã giải nén về kích thước ban đầu
+        decompressed_channel = decompressed_channel.reshape(
+            (output_height // vector_size, output_width // vector_size, vector_size, vector_size)
+        ).transpose(0, 2, 1, 3).reshape(output_height, output_width)
+
+        # Ghép lại kênh màu đã giải nén vào ảnh nén hoàn chỉnh
         if channel_size > 1:
-            # Ghép lại kênh màu đã giải nén vào ảnh nén hoàn chỉnh
-            decompressed_img[:output_height * vector_size, :output_width * vector_size, channel] = decompressed_channel.reshape(
-                (output_height, output_width, vector_size, vector_size)
-            ).transpose(0, 2, 1, 3).reshape(
-                (output_height * vector_size, output_width * vector_size)
-            )
+            decompressed_img[:output_height, :output_width, channel] = decompressed_channel
         else:
-            decompressed_img = decompressed_channel.reshape(
-                (output_height, output_width, vector_size, vector_size)
-            ).transpose(0, 2, 1, 3).reshape(input_shape)
+            decompressed_img = decompressed_channel
 
     plt.imsave(f'./image/request/{file_name[:-4]}.{image_type}', decompressed_img, cmap='gray')
 
