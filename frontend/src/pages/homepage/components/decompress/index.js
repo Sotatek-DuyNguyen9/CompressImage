@@ -70,7 +70,7 @@ const Decompress = ({ uploadFile }) => {
                 </div>
               </div>
             ) : (
-              <img src={`http://localhost:5000/image/decompress/${results?.name}`}/>
+              <img src={`http://localhost:5000/image/request/${results?.name}`}/>
             )}
           </div>
           <div className="compress__custom">
@@ -134,12 +134,12 @@ const Decompress = ({ uploadFile }) => {
                 htmlFor="exampleFormControlTextarea1"
                 className="form-label"
               >
-                Kích thước nhãn
+                Số kênh màu
               </label>
               <input
                 type="number"
                 className="form-control"
-                value={results?.labelSize || 0}
+                value={results?.channelSize || 0}
                 disabled
               />
             </div>

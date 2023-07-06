@@ -1,11 +1,7 @@
-import matplotlib.pyplot as plt
-from functions import (
-    handle_compress, handle_decompress
-)
+from functions import (handle_compress, handle_decompress)
 from flask import Flask, jsonify, request, send_file, send_from_directory
 import os
 from flask_cors import CORS
-import json
 
 app = Flask(__name__)
 CORS(app)
@@ -59,16 +55,6 @@ def download_file():
     
     # Gửi file về client
     return send_file(file_path, as_attachment=True)
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return 'No file found', 400
-    
-    file = request.files['file']
-    file.save('./image/test/file.jpg')
-    
-    return 'File uploaded successfully', 200
 
 # Đường dẫn đến thư mục chứa ảnh
 image_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'image')

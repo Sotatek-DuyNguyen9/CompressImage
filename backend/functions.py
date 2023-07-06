@@ -1,5 +1,3 @@
-#Import package
-import sys
 import numpy as np
 
 import os
@@ -7,21 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from flask import abort
 
-# import pyrebase
-
-# config = {
-#   "apiKey": "AIzaSyDUMgCIRYPWkbIyRiKDMqtd7pZStnBGWlo",
-#   "authDomain": "iot-project-f52c7.firebaseapp.com",
-#   "projectId": "iot-project-f52c7",
-#   "storageBucket": "iot-project-f52c7.appspot.com",
-#   "messagingSenderId": "377815157173",
-#   "appId": "1:377815157173:web:905b4eb36000bd9f4cb1fc",
-#   "serviceAccount": "key.json",
-#   "databaseURL": "https://iot-project-f52c7-default-rtdb.asia-southeast1.firebasedatabase.app/"
-# }
-
-# firebase = pyrebase.initialize_app(config)
-# storage = firebase.storage()
+# import pyrebaseE:\anaconda3\Scripts\activate base
 
 def handle_compress(image_name, codebook_size, vector_size):
     image_path = f"./image/origin/{image_name}"
@@ -30,85 +14,97 @@ def handle_compress(image_name, codebook_size, vector_size):
     # Đọc ảnh
     input_image = plt.imread(image_path)
 
-    # Từ chối nếu đây không phải ảnh đa mức xám
-    if input_image.ndim != 2:
-        print(input_image.shape)
-        return { "error": "This is not gray image" }
+    if input_image.ndim not in [2, 3]:
+        return { "error": "Invalid image" }
 
-    # Xử lý nếu ảnh đã được chuẩn hóa
+    channel_size = 1
+    if len(input_image.shape) >= 3:
+        channel_size = input_image.shape[2]
+    else:
+        print("Đây là ảnh đa mức xám")
+
+    # Xử lý ảnh đã chuẩn hóa
     if np.issubdtype(input_image.dtype, np.floating):
         input_image = (input_image * 255).astype(np.uint8)
 
-    # Chuyển đổi kích thước ma trận ảnh
-    input_height, input_width = input_image.shape
-    output_height = input_height // vector_size
-    output_width = input_width // vector_size
+    codebook_list = []
+    label_list = []
 
-    ########### XÂY DỰNG CODEBOOK ###########
-    # Chuyển đổi ma trận ảnh thành các vector ô vuông vector_size x vector_size pixel
-    training_img = input_image[:output_height * vector_size, :output_width * vector_size].reshape(
-        (output_height, vector_size, output_width, vector_size)
-    ).transpose(0, 2, 1, 3).reshape(-1, vector_size * vector_size)
+    # Tạo một ma trận zeros có kích thước giống với ảnh gốc
+    decompressed_img = np.zeros_like(input_image)
 
-    # Tạo model VQ sử dụng thuật toán KMeans
-    vq_model = KMeans(n_clusters=codebook_size, n_init=4)
+    # Tách từng kênh màu
+    for channel in range(channel_size):  # 3 kênh màu: R, G, B
+        # Lấy kênh màu hiện tại
+        if channel_size > 1:
+          channel_data = input_image[:, :, channel]
+        else: channel_data = input_image
 
-    # Huấn luyện model trên dữ liệu ảnh
-    vq_model.fit(training_img)
+        # Chuyển đổi kích thước ma trận ảnh
+        input_height, input_width = channel_data.shape
+        output_height = input_height // vector_size
+        output_width = input_width // vector_size
 
-    # Lấy ra các centroids/codebook từ model đã huấn luyện
-    codebook = vq_model.cluster_centers_
-    codebook = np.round(codebook).astype(int)
+        # Chuyển đổi ma trận ảnh thành các vector ô vuông vector_size x vector_size pixel
+        training_img = channel_data[:output_height * vector_size, :output_width * vector_size].reshape(
+            (output_height, vector_size, output_width, vector_size)
+        ).transpose(0, 2, 1, 3).reshape(-1, vector_size * vector_size)
 
-    ########### NÉN ẢNH ###########
-    compressed_img = input_image[:output_height * vector_size, :output_width * vector_size].reshape(
-        (output_height, vector_size, output_width, vector_size)
-    ).transpose(0, 2, 1, 3).reshape(-1, vector_size * vector_size)
+        # Tạo model VQ sử dụng thuật toán KMeans
+        vq_model = KMeans(n_clusters=codebook_size, n_init=4)
 
-    # Lấy ra index của các vector
-    labels = vq_model.predict(compressed_img)
+        # Huấn luyện model trên dữ liệu ảnh
+        vq_model.fit(training_img)
 
-    ########### GIẢI NÉN ẢNH ###########
-    # Thực hiện giải nén ảnh bằng cách thay thế mã hóa nén bằng các giá trị của centroids/codebook
-    decompressed_img = np.zeros_like(compressed_img)
-    for i in range(len(codebook)):
-        decompressed_img[labels==i] = codebook[i]
+        # Lấy ra các centroids/codebook từ model đã huấn luyện
+        codebook = vq_model.cluster_centers_
+        codebook = np.round(codebook).astype(int)
 
-    # Đưa ảnh đã nén về kích thước ban đầu
-    decompressed_img = decompressed_img.reshape(
-        (output_height, output_width, vector_size, vector_size)
-    ).transpose(0, 2, 1, 3).reshape(input_image.shape)
+        ########### NÉN KÊNH MÀU ###########
+        # Chuyển đổi ma trận ảnh thành các vector ô vuông vector_size x vector_size pixel
+        compressed_channel = channel_data[:output_height * vector_size, :output_width * vector_size].reshape(
+            (output_height, vector_size, output_width, vector_size)
+        ).transpose(0, 2, 1, 3).reshape(-1, vector_size * vector_size)
 
-    # image_filename = 'E:\\Tài liệu học tập\\20222\\Mã hóa dữ liệu đa phương tiện\\image-vq\\frontend\\src\\assets\\image\\results\\decompress.png'
+        # Lấy ra index của các vector
+        labels = vq_model.predict(compressed_channel)
+
+        ########### GIẢI NÉN KÊNH MÀU ###########
+        # Thực hiện giải nén kênh màu bằng cách thay thế mã hóa nén bằng các giá trị của centroids/codebook
+        decompressed_channel = np.zeros_like(compressed_channel)
+        for i in range(len(codebook)):
+            decompressed_channel[labels==i] = codebook[i]
+
+        if channel_size > 1:
+          # Ghép lại kênh màu đã giải nén vào ảnh nén hoàn chỉnh
+          decompressed_img[:output_height * vector_size, :output_width * vector_size, channel] = decompressed_channel.reshape(
+              (output_height, output_width, vector_size, vector_size)
+          ).transpose(0, 2, 1, 3).reshape(
+              (output_height * vector_size, output_width * vector_size)
+          )
+        else:
+          decompressed_img = decompressed_channel.reshape(
+              (output_height, output_width, vector_size, vector_size)
+          ).transpose(0, 2, 1, 3).reshape(input_image.shape)
+        
+        codebook_list.append(codebook)
+        label_list.append(labels)
+    
+    # Lưu ảnh đã giải nén
     plt.imsave(f'./image/decompress/{image_name}', decompressed_img, cmap='gray')
 
-    ########### XUẤT FILE NÉN ###########
+    # Xuất file nén
     np.savez_compressed(compress_path,
                     image_type=image_name[-3:],
+                    channel_size=channel_size,
                     vector_size=vector_size,
                     codebook_size=codebook_size,
                     input_shape=input_image.shape,
-                    compressed_shape=compressed_img.shape,
-                    codebook=codebook,
-                    labels=labels)
-
-    ########### TÍNH TỶ SỐ NÉN ###########
-    # # Định nghĩa số lượng vectơ đại diện trong codebook
-    # num_codevectors = len(codebook)
-
-    # # Định nghĩa số lượng bit cần thiết đã mã hóa toàn bộ index
-    # bit_per_index = int(np.ceil(np.log2(num_codevectors)))
-
-    # # Đếm số lượng label cần để mã hóa toàn bộ ảnh
-    # num_labels = len(labels)
-
-    # # Kích thước ảnh trước khi nén
-    # height, width = input_image.shape
-    # bit_per_pixel = 8  # Số bit cần thiết để mã hóa 256 giá trị của mỗi pixel
-    # size_before_compression = height * width * bit_per_pixel
-
-    # # Tính kích thước dữ liệu sau khi nén
-    # compressed_size = num_labels * bit_per_index + codebook_size * (vector_size ** 2) * bit_per_pixel
+                    compressed_shape=compressed_channel.shape,
+                    codebook_list=codebook_list,
+                    label_list=label_list)
+    
+    ########### TÍNH tỷ số nén ###########
     size_before_compression = os.path.getsize(image_path)
     compressed_size = os.path.getsize(compress_path)
 
@@ -139,27 +135,40 @@ def handle_compress(image_name, codebook_size, vector_size):
 def handle_decompress(file_name):
     data = np.load(f'./compress/upload/{file_name}')
     image_type = data['image_type'].item()
+    channel_size = data['channel_size'].item()
     vector_size = data['vector_size'].item()
     codebook_size = data['codebook_size'].item()
     input_shape = tuple(data['input_shape'])
     compressed_shape = tuple(data['compressed_shape'])
-    codebook = data['codebook']
-    labels = data['labels']
+    codebook_list = data['codebook_list']
+    label_list = data['label_list']
 
-    # Chuyển đổi kích thước ma trận ảnh
-    input_height, input_width = input_shape
-    output_height = input_height // vector_size
-    output_width = input_width // vector_size
+    decompressed_img = np.zeros(input_shape, dtype=np.uint8)    
+    for channel in range(channel_size):  # 3 kênh màu: R, G, B
+        # Chuyển đổi kích thước ma trận ảnh
+        if channel_size > 1:
+            input_height, input_width, _ = input_shape
+        else:
+            input_height, input_width = input_shape
+        output_height = input_height // vector_size
+        output_width = input_width // vector_size
 
-    # Thực hiện giải nén ảnh bằng cách thay thế mã hóa nén bằng các giá trị của centroids/codebook
-    decompressed_img = np.zeros(compressed_shape, dtype=np.uint8)
-    for i in range(len(codebook)):
-        decompressed_img[labels==i] = codebook[i]
+        # Tạo một ma trận zeros có kích thước giống với ảnh gốc
+        decompressed_channel = np.zeros(compressed_shape, dtype=np.uint8)
+        for i in range(len(codebook_list[channel])):
+            decompressed_channel[label_list[channel]==i] = codebook_list[channel][i]
 
-    # Đưa ảnh đã nén về kích thước ban đầu
-    decompressed_img = decompressed_img.reshape(
-        (output_height, output_width, vector_size, vector_size)
-    ).transpose(0, 2, 1, 3).reshape(input_shape)
+        if channel_size > 1:
+            # Ghép lại kênh màu đã giải nén vào ảnh nén hoàn chỉnh
+            decompressed_img[:output_height * vector_size, :output_width * vector_size, channel] = decompressed_channel.reshape(
+                (output_height, output_width, vector_size, vector_size)
+            ).transpose(0, 2, 1, 3).reshape(
+                (output_height * vector_size, output_width * vector_size)
+            )
+        else:
+            decompressed_img = decompressed_channel.reshape(
+                (output_height, output_width, vector_size, vector_size)
+            ).transpose(0, 2, 1, 3).reshape(input_shape)
 
     plt.imsave(f'./image/request/{file_name[:-4]}.{image_type}', decompressed_img, cmap='gray')
 
@@ -169,5 +178,5 @@ def handle_decompress(file_name):
         "codebookSize": codebook_size,
         "height": str(input_height),
         "width": str(input_width),
-        "labelSize": len(labels)
+        "channelSize": channel_size
     }
