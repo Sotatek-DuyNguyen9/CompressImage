@@ -103,7 +103,6 @@ def handle_compress(image_name, codebook_size, vector_size):
                     vector_size=vector_size,
                     codebook_size=codebook_size,
                     input_shape=input_image.shape,
-                    compressed_shape=compressed_channel.shape,
                     codebook_list=codebook_list,
                     label_list=label_list)
     
@@ -142,7 +141,6 @@ def handle_decompress(file_name):
     vector_size = data['vector_size'].item()
     codebook_size = data['codebook_size'].item()
     input_shape = tuple(data['input_shape'])
-    compressed_shape = tuple(data['compressed_shape'])
     codebook_list = data['codebook_list']
     label_list = data['label_list']
 
