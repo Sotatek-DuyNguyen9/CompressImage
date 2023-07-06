@@ -1,73 +1,95 @@
 .homepage {
-    width: 75%;
-    margin-top: 5vh;
-    margin-left: auto;
-    margin-right: auto;
-    color: #2e2e2e;
+  width: 75%;
+  margin-top: 5vh;
+  margin-left: auto;
+  margin-right: auto;
+  color: #2e2e2e;
 
-    &__title {
-        font-size: 2em;
-        line-height: 1;
-        margin: 0 0 10px;
-        text-transform: capitalize;
+  &__title {
+    font-size: 2em;
+    line-height: 1;
+    margin: 0 0 10px;
+    text-transform: capitalize;
+  }
+
+  &__description {
+    font-size: 1.15em;
+    font-weight: 400;
+  }
+
+  &__box {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 12px;
+  }
+
+  &__preview {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+
+    &__comparison {
+      display: flex;
+      justify-content: center;
+      // margin: 16px 0;
+      height: 400px;
+      flex: 3;
+      background-image: url(../../assets/image/common/background.jpg);
+      border: 2px solid #ddd;
+      border-radius: 4px;
+
+      > div {
+        width: 49.2% !important;
+      }
     }
 
-    &__description {
-        font-size: 1.15em;
-        font-weight: 400;
+    &__custom {
+      flex: 1;
+    }
+  }
+
+  &__upload {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 1em;
+  }
+
+  &__default {
+    border: 4px dashed #75a0fb;
+    padding: 30px;
+    border-radius: 16px;
+    margin: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    img {
+      height: 150px;
+      width: auto;
     }
 
-    &__box {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 12px;
+    p {
+      font-size: 18px;
+      font-weight: 600;
+      color: #456;
     }
+  }
 
-    &__preview {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        gap: 8px;
+  .slider__wrapper {
+    width: 500px;
+    margin: 0 auto;
 
-        &__comparison {
-            display: flex;
-            justify-content: center;
-            // margin: 16px 0;
-            height: 400px;
-            flex: 3;
-            background-image: url(../../assets/image/common/background.jpg);
-            border: 2px solid #ddd;
-            border-radius: 4px;
-
-            > div {
-                width: 49.2% !important;
-            }
-        }
-
-        &__custom {
-            flex: 1;
-        }
+    img {
+      width: auto;
+      // height: auto;
     }
+  }
 
-    &__upload {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0 1em;
-    }
-
-    .slider__wrapper {
-        width: 500px;
-        margin: 0 auto;
-
-        img {
-            width: auto;
-            // height: auto;
-        }
-    }
-
-    input[type="file"] {
-        display: none;
-    }
+  input[type='file'] {
+    display: none;
+  }
 }

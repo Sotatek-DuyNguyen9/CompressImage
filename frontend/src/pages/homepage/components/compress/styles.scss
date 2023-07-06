@@ -1,25 +1,56 @@
 .compress {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 8px;
+
+  &__comparison {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 8px;
+    justify-content: center;
+    // margin: 16px 0;
+    height: 400px;
+    flex: 3;
+    background-image: url(../../../../assets/image/common/background.jpg);
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    position: relative;
 
-    &__comparison {
-        display: flex;
-        justify-content: center;
-        // margin: 16px 0;
-        height: 400px;
-        flex: 3;
-        background-image: url(../../../../assets/image/common/background.jpg);
-        border: 2px solid #ddd;
-        border-radius: 4px;
+    > div {
+      position: absolute !important;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 100% !important;
+      width: -webkit-fill-available !important;
 
-        > div {
-            width: 49.2% !important;
-        }
+      // img {
+      //   width: auto !important;
+      // }
+    }
+  }
+
+  &__custom {
+    flex: 1;
+    position: relative;
+
+    .switch {
+      position: absolute;
+      right: 0;
+      top: -52px;
     }
 
-    &__custom {
-        flex: 1;
+    .action {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
+
+    button:last-child {
+      background-color: green;
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
 }
