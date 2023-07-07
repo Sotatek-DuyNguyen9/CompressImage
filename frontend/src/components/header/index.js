@@ -14,10 +14,10 @@ function Header() {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                 <li className="nav-item">
-                    <a className="nav-link active" href="https://www.facebook.com/" target="_blank">Home</a>
+                    <a className="nav-link active" href="https://www.facebook.com/" target="_blank">Trợ giúp</a>
                 </li>
                 <li className="nav-item">
-                    <a className="nav-link" href="https://www.facebook.com/" target="_blank">Link</a>
+                    <a className="nav-link active" href="https://www.facebook.com/" target="_blank">Góp ý</a>
                 </li>
             </ul>
             <form className="d-flex" role="search">

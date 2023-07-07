@@ -2,6 +2,17 @@ import React from "react";
 import axios from "axios";
 import "./styles.scss";
 
+const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+function niceBytes(x) {
+  let l = 0,
+    n = parseInt(x, 10) || 0;
+  while (n >= 1024 && ++l) {
+    n = n / 1024;
+  }
+  return n.toFixed(n < 10 && l > 0 ? 1 : 0) + ' ' + units[l];
+}
+
 const Decompress = ({ uploadFile }) => {
   const [results, setResults] = React.useState();
   const [loading, setLoading] = React.useState(false);
@@ -134,12 +145,12 @@ const Decompress = ({ uploadFile }) => {
                 htmlFor="exampleFormControlTextarea1"
                 className="form-label"
               >
-                Số kênh màu
+                Kích thước ảnh mới
               </label>
               <input
-                type="number"
+                type="text"
                 className="form-control"
-                value={results?.channelSize || 0}
+                value={niceBytes(results?.decompressedSize) || 0}
                 disabled
               />
             </div>

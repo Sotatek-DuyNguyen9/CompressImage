@@ -181,7 +181,11 @@ def handle_decompress(file_name):
         else:
             decompressed_img = decompressed_channel
 
-    plt.imsave(f'./image/request/{file_name[:-4]}.{image_type}', decompressed_img, cmap='gray')
+    decompressed_path = f'./image/request/{file_name[:-4]}.{image_type}'
+
+    plt.imsave(decompressed_path, decompressed_img, cmap='gray')
+
+    decompressed_size = os.path.getsize(decompressed_path)
 
     return {
         "name": f'{file_name[:-4]}.{image_type}',
@@ -189,5 +193,6 @@ def handle_decompress(file_name):
         "codebookSize": codebook_size,
         "height": str(input_height),
         "width": str(input_width),
-        "channelSize": channel_size
+        "channelSize": channel_size,
+        "decompressedSize": decompressed_size
     }

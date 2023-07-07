@@ -10,38 +10,38 @@ const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const marks = {
   0: {
     value: {
-      vector: 8,
-      codebook: 4,
+      vector: 4,
+      codebook: 8,
     },
-    label: <p style={{ marginLeft: '12px' }}>Low</p>,
+    label: <p style={{ marginLeft: '12px' }}>Thấp</p>,
   },
   25: {
     value: {
       vector: 4,
-      codebook: 8,
+      codebook: 16,
     },
-    label: <p style={{ marginLeft: '12px' }}>Medium</p>,
+    label: <p style={{ marginLeft: '12px' }}></p>,
   },
   50: {
     value: {
       vector: 2,
       codebook: 16,
     },
-    label: <p style={{ marginLeft: '12px' }}>High</p>,
+    label: <p style={{ marginLeft: '12px', color: 'black' }}>Vừa</p>,
   },
   75: {
     value: {
       vector: 2,
       codebook: 32,
     },
-    label: <p style={{ marginLeft: '12px' }}>Advanced</p>,
+    label: <p style={{ marginLeft: '12px' }}></p>,
   },
   100: {
     value: {
       vector: 2,
       codebook: 64,
     },
-    label: <p style={{ marginLeft: '12px' }}>Master</p>,
+    label: <p style={{ marginLeft: '12px', color: 'black' }}>Cao</p>,
   },
 };
 
@@ -63,8 +63,8 @@ const Compress = ({ uploadFile }) => {
   const [codebookSize, setCodebookSize] = React.useState(16);
   const [loading, setLoading] = React.useState(false);
   const [isAdvanToggle, setIsAdvanToggle] = React.useState(false);
-  const [rangeValue, setRangValue] = React.useState(25);
-
+  const [rangeValue, setRangValue] = React.useState(50);
+  console.log(vectorSize, codebookSize);
   const handleCompressImage = async () => {
     setLoading(true);
 
@@ -103,6 +103,7 @@ const Compress = ({ uploadFile }) => {
     setVectorSize(marks[e].value.vector);
     setCodebookSize(marks[e].value.codebook);
     setRangValue(e);
+    // handleCompressImage();
   };
 
   const handleSwitch = () => {
@@ -227,9 +228,9 @@ const Compress = ({ uploadFile }) => {
               vertical
               marks={marks}
               step={null}
-              defaultValue={25}
+              defaultValue={50}
               style={{
-                height: '40%',
+                height: '50%',
                 margin: '20px 60px 40px',
               }}
               onChange={(e) => handleSlide(e)}
