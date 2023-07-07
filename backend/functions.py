@@ -29,6 +29,7 @@ def handle_compress(image_name, codebook_size, vector_size):
 
     codebook_list = []
     label_list = []
+    snrAll = 0
 
     # Tạo một ma trận zeros có kích thước giống với ảnh gốc
     decompressed_img = np.zeros_like(input_image)
@@ -79,6 +80,20 @@ def handle_compress(image_name, codebook_size, vector_size):
         for i in range(len(codebook)):
             decompressed_channel[labels == i] = codebook[i]
 
+                # Tính giá trị trung bình của tín hiệu (training_img)
+        signal_mean = np.mean(training_img)
+
+        # Tính giá trị trung bình của nhiễu (độ lỗi giữa training_img và decompressed_channel)
+        # noise_mean = np.mean(training_img - decompressed_channel)
+
+        # Tính độ lỗi bình phương trung bình (Mean Squared Error)
+        mse = np.mean((training_img - decompressed_channel) ** 2)
+
+        # Tính SNR
+        if(mse == 0): snr = 100
+        else: snr = 10 * np.log10(signal_mean ** 2 / mse)
+        snrAll = snrAll + snr
+
         # Đưa kênh màu đã giải nén về kích thước ban đầu
         decompressed_channel = decompressed_channel.reshape(
             (output_height // vector_size, output_width // vector_size, vector_size, vector_size)
@@ -114,36 +129,20 @@ def handle_compress(image_name, codebook_size, vector_size):
     compression_ratio = round(compression_ratio, 2)
 
     ########### TÍNH PSNR ###########
-    # Chuyển đổi ma trận ảnh về kiểu dữ liệu số nguyên 8-bit
-    input_image = input_image.astype(np.uint8)
-    decompressed_img = decompressed_img.astype(np.uint8)
-
-    # Tính độ lỗi bình phương trung bình (Mean Squared Error)
-    mse = np.mean((input_image[:output_height, :output_width] - decompressed_img[:output_height, :output_width]) ** 2)
-
-    # Tính PSNR
-    max_pixel_value = 255  # Giá trị pixel tối đa
-    psnr = 10 * np.log10((max_pixel_value ** 2) / mse)
-    psnr = round(psnr, 2)
-
-    # Tính SNR
-    # image = input_image.astype(np.uint8)
+    # # Chuyển đổi ma trận ảnh về kiểu dữ liệu số nguyên 8-bit
+    # input_image = input_image.astype(np.uint8)
     # decompressed_img = decompressed_img.astype(np.uint8)
-    # mean_image = np.mean(image ** 2) # Tính giá trị trung bình ảnh gốc
-    # noise = decompressed_img - image # Tính nhiễu 
-    # mean_noise = np.mean(noise ** 2) # Tính giá trị trung bình của nhiễu
-    
-    # if mean_noise == 0:
-    #     snr = 100  # Ảnh sạch (clean image)
-    # else:
-    #     snr = 10 * np.log10((mean_image) / mean_noise)  # SNR của ảnh
 
-    ########### TÍNH SNR ###########
-    # Tính độ lỗi bình phương trung bình (Mean Squared Error)
-    mse = np.mean((input_image[:output_height, :output_width] - decompressed_img[:output_height, :output_width]) ** 2)
-    signal_power = np.mean(input_image[:output_height, :output_width] ** 2)
-    noise_power = mse
-    snr = 10 * np.log10(signal_power / noise_power)
+    # # Tính độ lỗi bình phương trung bình (Mean Squared Error)
+    # mse = np.mean((input_image[:output_height, :output_width] - decompressed_img[:output_height, :output_width]) ** 2)
+
+    # # Tính PSNR
+    # max_pixel_value = 255  # Giá trị pixel tối đa
+    # psnr = 10 * np.log10((max_pixel_value ** 2) / mse)
+    # psnr = round(psnr, 2)
+    # print(channel_size)
+    if channel_size > 1:
+        snrAll = round(snrAll / 3, 2)
 
    
     return {
@@ -151,8 +150,8 @@ def handle_compress(image_name, codebook_size, vector_size):
         "originSize": size_before_compression,
         "compressedSize": compressed_size,
         "compressRatio": compression_ratio,
-        "psnr": psnr,
-        "snr": snr
+        # "psnr": psnr,
+        "snr": snrAll
     }
 
 def handle_decompress(file_name):
