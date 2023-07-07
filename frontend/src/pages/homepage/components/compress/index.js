@@ -219,6 +219,10 @@ const Compress = ({ uploadFile }) => {
                 PSNR
               </label>
               <input type="number" className="form-control" value={results?.psnr || 0} disabled />
+              {/* <label htmlFor="exampleFormControlTextarea1" className="form-label">
+                SNR
+              </label>
+              <input type="number" className="form-control" value={results?.snr || 0} disabled /> */}
             </div>
           </>
         ) : (
